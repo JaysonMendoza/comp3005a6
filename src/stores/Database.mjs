@@ -1,9 +1,15 @@
-import sqlite3 from 'sqlite3'
+import {PromisedDatabase} from 'promised-sqlite3'
 
-sqlite3.verbose();
-let db = new sqlite3.Database('DNDSpellsAndAbilities.db');
+const DND5EDB = new PromisedDatabase();
+
+try {
+    DND5EDB.open('DND5eMonsters.db');
+}
+catch(error) {
+    console.error("DB Open Error:",error);
+}
 
 //Prepared Queries go here
 
 
-export default db;
+export default DND5EDB;
