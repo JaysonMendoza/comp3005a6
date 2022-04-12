@@ -27,7 +27,7 @@ export default function MonsterView(props) {
     async function monsterChanged(monsterID) {
         console.log(monsterID)
         let m = monstertdst.find(e => e.monsterID === monsterID);
-        console.log("Search for monsterID: ",monsterID,", Found: ",m);
+        // console.log("Search for monsterID: ",monsterID,", Found: ",m);
         axios.get("/monsters/"+monsterID).then(response=> {
             let tdata = response.data.data;
             let newMonster = {
@@ -44,7 +44,7 @@ export default function MonsterView(props) {
                 immunities : tdata.immunities,
                 altForms : tdata.altForms
             }
-            console.log(newMonster);
+            // console.log(newMonster);
             setSqlQueryString(response.data.sqlQuery);
             setMonster(newMonster);
         });
