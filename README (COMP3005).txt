@@ -1,7 +1,14 @@
+Student: Jayson Mendoza 
+ID: 100781511
+Course: Comp3005 Assignment 6 Winter 2022
+jaysonmendoza@cmail.carleton.ca
+
 Repository: https://github.com/JaysonMendoza/comp3005a6 (Private, requires invite so email me at jaysonmendoza@cmail.carleton.ca for access)
 
 Database Location
 /Server/DB/DND5eMonsters.db
+
+Youtube Walkthrough Link: https://youtu.be/PdslYbYfuaQ
 
 
 To Run Project:
