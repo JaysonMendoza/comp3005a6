@@ -13,6 +13,7 @@ CREATE TABLE StatCards(
 
 CREATE TABLE Monsters(
     monsterID TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
     size TEXT,
     type TEXT,
     subType TEXT,
@@ -172,3 +173,8 @@ CREATE TABLE MonsterSA(
 );
 
 COMMIT;
+
+
+-- WITH
+--     SpellCastingMonsters(monsterID,size,type,subtype,alignment,armorClass,hitpoints,challengeRating,xpReward,saName,saDescription)
+--         AS (SELECT monsterID,saName,saDescription FROM Monsters NATURAL JOIN MonsterSA NATURAL JOIN SpecialAbilities WHERE saName LIKE 'spellcasting')

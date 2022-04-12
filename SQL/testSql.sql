@@ -1,0 +1,2 @@
+SELECT monsterID,name,size,type,subType,alignment,armorClass,hitPoints,hitDice,languages,numAlternateForms,challengeRating,xpReward,strength,dexterity,constitution,intelligence,wisdom,charisma FROM Monsters NATURAL JOIN MonsterSA NATURAL JOIN StatCards NATURAL JOIN SpecialAbilities WHERE saName LIKE 'spellcasting';
+SELECT monsterID FROM Monsters NATURAL JOIN MonsterLA GROUP BY monsterID;

@@ -344,6 +344,7 @@ async function convertMonster(monsterObj,formMap) {
     }
     let monster = {
         "$monsterID" : monsterObj?.index,
+        "$name" :  monsterObj?.name,
         "$size" : monsterObj?.size,
         "$type" : monsterObj?.type,
         "$subType" : monsterObj?.subtype,
@@ -385,7 +386,7 @@ async function convertMonster(monsterObj,formMap) {
     }
 
     const sqlExists="SELECT monsterID FROM Monsters WHERE monsterID=?";
-    const sqlAdd="INSERT INTO Monsters(monsterID,size,type,subType,alignment,armorClass,hitPoints,hitDice,languages,numAlternateForms,statCardID,challengeRating,xpReward) VALUES($monsterID,$size,$type,$subType,$alignment,$armorClass,$hitPoints,$hitDice,$languages,$numAlternateForms,$statCardID,$challengeRating,$xpReward)";
+    const sqlAdd="INSERT INTO Monsters(monsterID,name,size,type,subType,alignment,armorClass,hitPoints,hitDice,languages,numAlternateForms,statCardID,challengeRating,xpReward) VALUES($monsterID,$name,$size,$type,$subType,$alignment,$armorClass,$hitPoints,$hitDice,$languages,$numAlternateForms,$statCardID,$challengeRating,$xpReward)";
 
     let monsterID = await DND5EDB.get(sqlExists,monster["$monsterID"]);
     monsterID=monsterID?.monsterID;
