@@ -1,5 +1,5 @@
 import React from "react";
-import {Route, Routes,NavLink} from 'react-router-dom'
+import {Route, Routes,NavLink,Navigate} from 'react-router-dom'
 import {Nav, Tab} from 'react-bootstrap'
 import {Container,Row,Col} from 'react-bootstrap';
 import MonsterListView from "./MonsterListView";
@@ -15,14 +15,12 @@ export default function MainView(props) {
         <Row>
             <Col>
                 <Routes>
-                    {/* <Route exact path="/">
-                        <Redirect to="/R3-3" />
-                    </Route> */}
+                        
                     <Route path="/R3-3" element={<h1  className="text-center" >R3.3) Monster List</h1>}/>
                     <Route path="/R3-4" element={<h1 className="text-center">R3.4) Actions by Monster CR</h1>}/>
-                    <Route path="/R3-5" element={<h1 className="text-center">R3.5) Find Monster Card</h1>}/>
+                    <Route path="/R3-5" element={<h1 className="text-center">R3.5) View Monster Card</h1>}/>
                     <Route path="/R3-6" element={<h1 className="text-center">R3.6) Spellcasting Legendary Monsters</h1>}/>
-                    <Route index element={<h1  className="text-center" >R3.3) Monster List</h1>}/>
+                    <Route index element={<Navigate to="/R3-3" />}/>
                 </Routes>
             </Col>
         </Row>

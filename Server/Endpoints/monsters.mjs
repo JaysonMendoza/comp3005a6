@@ -44,6 +44,25 @@ monsterRouter.get("/R3-4", async (req,res)=> {
 });
 
 /**
+ * R3.6 [2 marks] Demonstrate a query that involves a secondary
+ * refinement, or query based on the results of the first query. 
+ * 
+ * This is spellcasting Legendary monsters.
+ * 
+ * This selects all monsters that have the spellcasting special ability and also have at least one legendary action
+ */
+monsterRouter.get("/R3-6", async (req,res)=> {
+    const sql = "SELECT monsterID,name,size,type,alignment,armorClass,hitPoints,hitDice,challengeRating,xpReward,strength,dexterity,constitution,intelligence,wisdom,charisma, saDescription FROM Monsters NATURAL JOIN MonsterSA NATURAL JOIN StatCards NATURAL JOIN SpecialAbilities WHERE saName LIKE 'spellcasting' AND monsterID IN (SELECT monsterID FROM Monsters NATURAL JOIN MonsterLA GROUP BY monsterID)";
+    let data = await DND5EDB.all(sql);
+    let msgOut = {
+        "sqlQuery" : sql,
+        "data" : data
+    }
+    console.log(msgOut);
+    res.status(200).send(msgOut);
+});
+
+/**
  * R3.5 [2 marks] Demonstrate a query that involves an N:N relationship in
  * your data. 
  * 
@@ -62,7 +81,7 @@ monsterRouter.get("/:monsterID", async (req,res)=> {
     const sqlVulnerabilities = "SELECT  affectType FROM Monsters NATURAL JOIN Vulnerabilities WHERE monsterID=?";
     const sqlResistances = "SELECT  affectType FROM Monsters NATURAL JOIN Resistances WHERE monsterID=?";
     const sqlImmunities = "SELECT  affectType FROM Monsters NATURAL JOIN Immunities WHERE monsterID=?";
-    const sqlAltForms = "SELECT Monsters.name AS name FROM AlternateForms JOIN Monsters ON AlternateForms.formMonsterID=Monsters.monsterID WHERE Monsters.monsterID=?";
+    const sqlAltForms = "SELECT formMonsterID,name FROM AlternateForms JOIN Monsters ON AlternateForms.formMonsterID=Monsters.monsterID WHERE Monsters.monsterID=?";
     let data = {};
     data.actions = await DND5EDB.all(sqlActions,monsterID);
     data.la = await DND5EDB.all(sqlLA,monsterID);
@@ -84,23 +103,5 @@ monsterRouter.get("/:monsterID", async (req,res)=> {
     res.status(200).send(msgOut);
 });
 
-/**
- * R3.6 [2 marks] Demonstrate a query that involves a secondary
- * refinement, or query based on the results of the first query. 
- * 
- * This is spellcasting Legendary monsters.
- * 
- * This selects all monsters that have the spellcasting special ability and also have at least one legendary action
- */
-monsterRouter.get("/R3-6", async (req,res)=> {
-    const sql = "SELECT monsterID,name,size,type,alignment,armorClass,hitPoints,hitDice,challengeRating,xpReward,strength,dexterity,constitution,intelligence,wisdom,charisma, saDescription FROM Monsters NATURAL JOIN MonsterSA NATURAL JOIN StatCards NATURAL JOIN SpecialAbilities WHERE saName LIKE 'spellcasting' AND monsterID IN (SELECT monsterID FROM Monsters NATURAL JOIN MonsterLA GROUP BY monsterID)";
-    let data = await DND5EDB.all(sql);
-    let msgOut = {
-        "sqlQuery" : sql,
-        "data" : data
-    }
-    console.log(msgOut);
-    res.status(200).send(msgOut);
-});
 
 export default monsterRouter;

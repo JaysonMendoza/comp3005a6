@@ -8,7 +8,7 @@ async function updateFromApi() {
     let mList = await apiGetMonsterList();
     let formList = new Map();
     console.log("This list has "+mList.length+" elements!");
-    try {
+
         for(const mEntry of mList) {
             let currMonster = await axios.get(MONSTER_ENDPOINT+mEntry.index);
             let monsterID = await convertMonster(currMonster?.data,formList);
@@ -22,9 +22,11 @@ async function updateFromApi() {
             await convertActionTypes(currMonster?.data?.legendary_actions,"la",monsterID,"LegendaryActions","MonsterLA");
             await convertActionTypes(currMonster?.data?.special_abilities,"sa",monsterID,"SpecialAbilities","MonsterSA");
             await convertActionTypes(currMonster?.data?.actions,"action",monsterID,"Actions","MonsterActions");
+            await convertMovementSpeeds(currMonster.data?.speed,monsterID);
         }
-        for(const [monsterID,formMonsterID] of Object.entries(formList)) {
-            
+        console.log("Done monster setup. Processing Additional Forms",formList);
+        for(let [monsterID,formMonsterID] of formList.entries()) {
+            console.log("Iterating Monster Form Item: monsterID=",monsterID,", formMonsterID=",formMonsterID);
             let res = await DND5EDB.get("SELECT monsterID,formMonsterID FROM AlternateForms WHERE monsterID=? AND formMonsterID=?",monsterID,formMonsterID);
             if( !(res?.monsterID===monsterID && res?.formMonsterID===formMonsterID) ) {
                 res = await DND5EDB.get("INSERT INTO AlternateForms(monsterID,formMonsterID) VALUES(?,?)",monsterID,formMonsterID);
@@ -32,11 +34,8 @@ async function updateFromApi() {
                     console.error("Failed to insert alternate form monsterID "+monsterID+", formMonsterID: "+formMonsterID);
                 }
             }
-        }
-    }
-    catch(error) {
-        console.log("Failure: ",error);
-    }
+        };
+
 }
 
 async function apiGetMonsterList() {
@@ -58,6 +57,74 @@ async function apiGetMonsterList() {
         console.log(error);
         throw error;
     }
+}
+
+async function convertMovementSpeeds(moveObj,monsterID) {
+    let addList = [];
+    //Create List of things to add based on list
+    for(const key in moveObj) {
+        let entry = {
+            "$monsterID" : monsterID,
+            "$distance" : undefined,
+            "$moveType" : key
+        }
+        if(typeof moveObj[key] === "boolean") {
+            entry["$distance"] = await convertDistance("0 ft");
+        }
+        else {
+            entry["$distance"] = await convertDistance(moveObj[key]);
+        }
+
+        if(entry["$monsterID"]===undefined || entry["$distance"===undefined]) {
+            console.error("Failed to convert movement speed: ",moveObj);
+            return new Error("Failed to convert Movement Speed");
+        }
+        addList.push(entry);
+    }
+
+    for(const entry of addList) {
+        let res = await DND5EDB.get("SELECT monsterID,distance,moveType FROM MoveSpeeds WHERE monsterID=$monsterID AND distance=$distance AND moveType=$moveType",entry);
+        if(res===undefined) {
+            res = await DND5EDB.run("INSERT INTO MoveSpeeds(monsterID,distance,moveType) VALUES($monsterID,$distance,$moveType)",entry);
+            if(!isFinite(res?.lastID)) {
+                console.error("Failed to insert Movement Speed for monsterID: ",monsterID,", Data: ",entry);
+                return new Error("Failed to insert Movement Speed for monsterID: "+monsterID+", Data: "+JSON.stringify(entry));
+            }
+        }
+    }
+}
+
+async function convertDistance(distanceEntry) {
+    let vals = distanceEntry.trim().slice().split(" ");
+    let data = {
+        "$distance" : undefined,
+        "$dUnit" : undefined,
+        "$dValue" : undefined
+    };
+    
+    if(vals.length>=2) {
+        data["$dUnit"]=vals[1].toLowerCase().replace(/[^a-z]*/g,"").trim();
+        data["$dValue"]=parseInt(vals[0]);
+        data["$distance"] = ""+data["$dValue"]+" "+data["$dUnit"];   
+    }
+    else {
+        console.error("Propsed Entry had no distance",distanceEntry,vals);
+        return undefined;
+    }
+    
+    //If we have a valid distance check if range exists as a distance and add if necessary
+    if(data["$distance"]!==undefined && data["$dUnit"]!==undefined && isFinite(data["$dValue"]))
+    {
+        let res = await DND5EDB.get("SELECT distance FROM Distance WHERE distance=?",data["$distance"]);
+        if(res?.distance===undefined) {
+            res = await DND5EDB.run("INSERT INTO Distance (distance,dUnit,dValue) VALUES ($distance,$dUnit,$dValue)",data);
+            if(!isFinite(res?.lastID)) {
+                console.error("Failed to insert distance ",data);
+                return undefined;
+            }
+        } 
+    }
+    return data["$distance"];
 }
 
 
@@ -322,6 +389,7 @@ async function convertActionTypes(actionArr,prefix,monsterID,table,nTonTable) {
         const sqlFind = "SELECT "+prefix+"Name FROM "+table+" WHERE "+prefix+"name="+name+" AND "+prefix+"Description="+desc;
         const sqlAdd = "INSERT INTO "+table+"("+prefix+"Name,"+prefix+"Description) VALUES("+name+","+desc+")";
         const sqlLink = "INSERT INTO "+nTonTable+"("+prefix+"ID,monsterID) VALUES($"+prefix+"ID,$monsterID)";
+        const sqlQueryLink = "SELECT "+prefix+"ID,monsterID FROM "+nTonTable+" WHERE "+prefix+"ID=$"+prefix+"ID AND monsterID=$monsterID";
         let qRes = await DND5EDB.get(sqlFind,data);
         let id = qRes?.[prefix+"ID"];
         if(id===undefined) {
@@ -332,7 +400,15 @@ async function convertActionTypes(actionArr,prefix,monsterID,table,nTonTable) {
                     ["$"+prefix+"ID"] : id,
                     "$monsterID" : monsterID
                 }
-                res = await DND5EDB.run(sqlLink,nTonData);
+
+                res = await DND5EDB.get(sqlQueryLink,nTonData);
+                id = res?.["$"+prefix+"ID"];
+                if(id===undefined) {
+                    res = await DND5EDB.run(sqlLink,nTonData);
+                }
+                else {
+                    console.log("existing entry found ",nTonData);
+                }
             }
         }
     }

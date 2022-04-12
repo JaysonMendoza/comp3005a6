@@ -16,10 +16,15 @@ export default function MonsterCard(props) {
     const [vulnerabilities,setVulnerabilities] = useState([]);
     const [resistances,setResistances] = useState([]);
     const [immunities,setImmunities] = useState([]);
+    const [altForms,setAltForms] = useState([]);
     console.log(props);
 
     
     useEffect( () => {
+        if(props?.monster===undefined || props?.monster==null) {
+            console.error("Monster cannot be undefined!");
+            return;
+        }
         setActionItems("action",props?.monster?.actions,setActions);   
         setActionItems("la",props?.monster?.la,setLA);
         setActionItems("sa",props?.monster?.sa,setSA);
@@ -30,12 +35,15 @@ export default function MonsterCard(props) {
         setAsList(props?.monster?.vulnerabilities,setVulnerabilities);
         setAsList(props?.monster?.resistances,setResistances);
         setAsList(props?.monster?.immunities,setImmunities);
+        setAltFormItems(props?.monster?.altForms)
     },[props]);
 
     async function setAsList(list,setFunct) {
-        let newList = list?.map(item => {
-            return item.affectType;
-        });
+        let newList = [];
+        for(const item of list) {
+            
+            newList.push(item.affectType);
+        };
 
         if(newList===undefined || newList.length<1) {
             newList.push("None")
@@ -93,6 +101,20 @@ export default function MonsterCard(props) {
             componentList.push(<p>None</p>);
         }
         setSenses(componentList);
+    }
+
+    async function setAltFormItems(list) {
+        if(list===undefined) {
+            return;
+        }
+        let outList = [];
+        for(const item of list) {
+            outList.push(item.name);
+        }
+        if(outList===undefined || outList?.length<1) {
+            outList.push("None");
+        }
+        setAltForms(outList);
     }
 
     async function setMoveSpeedItems(list) {
@@ -278,6 +300,14 @@ export default function MonsterCard(props) {
                 </Col>
                 <Col xs={9}>
                     <p className="text-left">{vulnerabilities}</p>
+                </Col>
+            </Row>
+            <Row>
+                <Col xs={3}>
+                    <h5 className="text-center">Alternate Forms</h5>
+                </Col>
+                <Col xs={9}>
+                    <p className="text-left">{altForms}</p>
                 </Col>
             </Row>
             <Row>
