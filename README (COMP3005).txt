@@ -8,6 +8,9 @@ Repository: https://github.com/JaysonMendoza/comp3005a6 (Private, requires invit
 Database Location
 /Server/DB/DND5eMonsters.db
 
+Query Code Location
+/Server/Endpoints/monsters.mjs
+
 Youtube Walkthrough Link: https://youtu.be/PdslYbYfuaQ
 
 
